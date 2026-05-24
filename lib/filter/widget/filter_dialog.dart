@@ -7,6 +7,7 @@ import 'package:ntodotxt/common/widget/group_by_selector.dart';
 import 'package:ntodotxt/common/widget/order_selector.dart';
 import 'package:ntodotxt/common/widget/priority_selector.dart';
 import 'package:ntodotxt/common/widget/project_selector.dart';
+import 'package:ntodotxt/common/widget/threshold_selector.dart';
 import 'package:ntodotxt/filter/state/filter_cubit.dart';
 
 class FilterDialog extends StatelessWidget {
@@ -98,6 +99,19 @@ class FilterDialog extends StatelessWidget {
                   horizontal: 24.0,
                   vertical: 8.0,
                 ),
+                child: Text(
+                  'Threshold',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+                child: ThresholdSelector(),
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
                 child: Text(
                   'Group by',
                   style: Theme.of(context).textTheme.titleSmall,

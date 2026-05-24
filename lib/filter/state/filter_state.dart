@@ -48,7 +48,13 @@ sealed class FilterState extends Equatable {
     );
   }
 
-  bool get changed => origin != filter;
+  bool get changed {
+    if (origin == null) {
+      return true;
+    } else {
+      return origin != filter.copyWith(threshold: origin!.threshold);
+    }
+  }
 
   bool get orderChanged {
     if (origin == null) {
@@ -71,6 +77,14 @@ sealed class FilterState extends Equatable {
       return true;
     } else {
       return origin!.group != filter.group;
+    }
+  }
+
+  bool get thresholdChanged {
+    if (origin == null) {
+      return true;
+    } else {
+      return origin!.threshold != filter.threshold;
     }
   }
 
