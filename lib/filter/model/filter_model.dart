@@ -61,11 +61,7 @@ extension Order on ListOrder {
     if (b == null) {
       return -1;
     }
-    if (a is Todo && b is Todo) {
-      return a.description.toLowerCase().compareTo(b.description.toLowerCase());
-    } else {
-      return a.toString().compareTo(b.toString());
-    }
+    return a.toString().compareTo(b.toString());
   }
 
   int descending<T>(T a, T b) {
@@ -75,11 +71,7 @@ extension Order on ListOrder {
     if (b == null) {
       return 1;
     }
-    if (a is Todo && b is Todo) {
-      return b.description.toLowerCase().compareTo(a.description.toLowerCase());
-    } else {
-      return b.toString().compareTo(a.toString());
-    }
+    return b.toString().compareTo(a.toString());
   }
 
   Iterable<T> sort<T>(Iterable<T> list) => list.toList()..sort(_sort);

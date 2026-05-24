@@ -112,15 +112,17 @@ void main() {
           '2023-12-02 TODOC',
           '2023-12-02 todoA',
           '2023-12-02 TodoB',
+          '(A) prioritized',
         ].join('\n'),
         flush: true,
       );
     });
     testWidgets('default', (tester) async {
       final List<String> expectedTiles = [
-        'todoA',
-        'TodoB',
+        'prioritized',
         'TODOC',
+        'TodoB',
+        'todoA',
       ];
       await tester.pumpWidget(TodoListPageMaterialApp(
         localFile: file,
@@ -142,9 +144,10 @@ void main() {
     });
     testWidgets('ascending', (tester) async {
       final List<String> expectedTiles = [
-        'todoA',
-        'TodoB',
+        'prioritized',
         'TODOC',
+        'TodoB',
+        'todoA',
       ];
       await tester.pumpWidget(TodoListPageMaterialApp(
         localFile: file,
@@ -171,9 +174,10 @@ void main() {
     });
     testWidgets('descending', (tester) async {
       final List<String> expectedTiles = [
-        'TODOC',
-        'TodoB',
         'todoA',
+        'TodoB',
+        'TODOC',
+        'prioritized',
       ];
       await tester.pumpWidget(TodoListPageMaterialApp(
         localFile: file,
@@ -600,8 +604,8 @@ void main() {
           'TodoB1 +project1',
           'TodoA1 +project1', // Completed todo come always at last.
           'project2',
-          'TodoA2 +project2',
           'TodoB2 +project2',
+          'TodoA2 +project2',
           'No project',
           'TodoC',
           'TodoD',
@@ -632,8 +636,8 @@ void main() {
       testWidgets('descending', (tester) async {
         final List<String> expectedTiles = [
           'project2',
-          'TodoB2 +project2',
           'TodoA2 +project2',
+          'TodoB2 +project2',
           'project1',
           'TodoB1 +project1',
           'TodoA1 +project1', // Completed todo come always at last.
@@ -687,8 +691,8 @@ void main() {
           'TodoB1 @context1',
           'TodoA1 @context1', // Completed todo come always at last.
           'context2',
-          'TodoA2 @context2',
           'TodoB2 @context2',
+          'TodoA2 @context2',
           'No context',
           'TodoC',
           'TodoD',
@@ -719,8 +723,8 @@ void main() {
       testWidgets('descending', (tester) async {
         final List<String> expectedTiles = [
           'context2',
-          'TodoB2 @context2',
           'TodoA2 @context2',
+          'TodoB2 @context2',
           'context1',
           'TodoB1 @context1',
           'TodoA1 @context1', // Completed todo come always at last.
