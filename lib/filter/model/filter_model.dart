@@ -13,6 +13,12 @@ enum ListFilter {
   incompletedOnly,
 }
 
+enum ListThreshold {
+  all,
+  actionableOnly,
+  waitingOnly,
+}
+
 enum ListGroup {
   none,
   upcoming,
@@ -104,6 +110,40 @@ extension Filters on ListFilter {
         return !todo.completion;
       default:
         // Default is all.
+        return true;
+    }
+  }
+
+  Iterable<Todo> apply(Iterable<Todo> todoList) => todoList.where(_apply);
+}
+
+extension Thresholds on ListThreshold {
+  static Set<ListThreshold> get types => {
+        for (var f in ListThreshold.values) f,
+      };
+
+  static ListThreshold byName(String? name) {
+    if (name != null) {
+      for (var threshold in ListThreshold.values) {
+        if (threshold.name == name) {
+          return threshold;
+        }
+      }
+    }
+
+    return ListThreshold.actionableOnly;
+  }
+
+  bool _apply(Todo todo) {
+    final DateTime? threshold = todo.thresholdDate;
+    switch (this) {
+      case ListThreshold.all:
+        return true;
+      case ListThreshold.actionableOnly:
+        return threshold == null || Todo.compareToToday(threshold) <= 0;
+      case ListThreshold.waitingOnly:
+        return threshold != null && Todo.compareToToday(threshold) > 0;
+      default:
         return true;
     }
   }
@@ -239,6 +279,7 @@ class Filter extends Equatable {
   final Set<String> contexts;
   final ListOrder order;
   final ListFilter filter;
+  final ListThreshold threshold;
   final ListGroup group;
 
   const Filter({
@@ -249,6 +290,7 @@ class Filter extends Equatable {
     this.contexts = const {},
     this.order = ListOrder.ascending,
     this.filter = ListFilter.all,
+    this.threshold = ListThreshold.actionableOnly,
     this.group = ListGroup.none,
   });
 
@@ -289,6 +331,7 @@ class Filter extends Equatable {
 
   Iterable<Todo> apply(List<Todo> todoList) {
     Iterable<Todo> filtered = filter.apply(todoList);
+    filtered = threshold.apply(filtered);
     if (priorities.isNotEmpty) {
       filtered = filtered.where(_applyPriority);
     }
@@ -374,6 +417,7 @@ class Filter extends Equatable {
     Set<String>? contexts,
     ListOrder? order,
     ListFilter? filter,
+    ListThreshold? threshold,
     ListGroup? group,
   }) {
     return Filter(
@@ -388,6 +432,7 @@ class Filter extends Equatable {
           : this.contexts,
       order: order ?? this.order,
       filter: filter ?? this.filter,
+      threshold: threshold ?? this.threshold,
       group: group ?? this.group,
     );
   }
@@ -398,6 +443,7 @@ class Filter extends Equatable {
     Set<String>? contexts,
     ListOrder? order,
     ListFilter? filter,
+    ListThreshold? threshold,
     ListGroup? group,
   }) {
     return Filter(
@@ -406,6 +452,7 @@ class Filter extends Equatable {
       contexts: contexts ?? this.contexts,
       order: order ?? this.order,
       filter: filter ?? this.filter,
+      threshold: threshold ?? this.threshold,
       group: group ?? this.group,
     );
   }
@@ -428,7 +475,7 @@ class Filter extends Equatable {
 
   @override
   String toString() {
-    return 'Filter { id: $id, name: $name order: ${order.name} filter: ${filter.name} group: ${group.name} priorities: ${[
+    return 'Filter { id: $id, name: $name order: ${order.name} filter: ${filter.name} threshold: ${threshold.name} group: ${group.name} priorities: ${[
       for (var p in priorities) p.name
     ]} projects: ${[for (var p in projects) p]} contexts: ${[
       for (var c in contexts) c
@@ -444,6 +491,7 @@ class Filter extends Equatable {
         contexts,
         order,
         filter,
+        threshold,
         group,
       ];
 }

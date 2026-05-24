@@ -93,6 +93,8 @@ class AppBarFilterList extends StatelessWidget {
                   const SizedBox(width: 4),
                   const FilterFilterChip(),
                   const SizedBox(width: 4),
+                  const FilterThresholdChip(),
+                  const SizedBox(width: 4),
                   const FilterGroupChip(),
                   const SizedBox(width: 4),
                   const FilterPrioritiesChip(),

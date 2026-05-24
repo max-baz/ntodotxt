@@ -8,7 +8,7 @@ import 'package:ntodotxt/common/widget/order_dialog.dart';
 import 'package:ntodotxt/common/widget/priorities_dialog.dart';
 import 'package:ntodotxt/common/widget/projects_dialog.dart';
 import 'package:ntodotxt/filter/model/filter_model.dart'
-    show ListFilter, ListOrder;
+    show ListFilter, ListOrder, ListThreshold;
 import 'package:ntodotxt/filter/state/filter_cubit.dart';
 import 'package:ntodotxt/filter/state/filter_state.dart';
 import 'package:ntodotxt/todo/model/todo_model.dart' show Priority;
@@ -79,6 +79,47 @@ class FilterFilterChip extends StatelessWidget {
           selected: changed,
           onPressed: () async {
             await FilterStateFilterDialog.dialog(
+              context: context,
+              cubit: BlocProvider.of<FilterCubit>(context),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class FilterThresholdChip extends StatelessWidget {
+  const FilterThresholdChip({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<FilterCubit, FilterState>(
+      builder: (BuildContext context, FilterState state) {
+        final bool changed = state.thresholdChanged;
+        late final String label;
+        late final IconData iconData;
+        switch (state.filter.threshold) {
+          case ListThreshold.all:
+            label = 'all';
+            iconData = Icons.schedule;
+            break;
+          case ListThreshold.actionableOnly:
+            label = 'actionable';
+            iconData = Icons.play_arrow;
+            break;
+          case ListThreshold.waitingOnly:
+            label = 'waiting';
+            iconData = Icons.schedule;
+            break;
+        }
+
+        return GenericActionChip(
+          avatar: Icon(iconData),
+          label: Text(label),
+          selected: changed,
+          onPressed: () async {
+            await FilterStateThresholdDialog.dialog(
               context: context,
               cubit: BlocProvider.of<FilterCubit>(context),
             );

@@ -7,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ntodotxt/database/controller/database.dart';
 import 'package:ntodotxt/filter/controller/filter_controller.dart';
 import 'package:ntodotxt/filter/model/filter_model.dart'
-    show Filter, ListFilter, ListGroup, ListOrder;
+    show Filter, ListFilter, ListGroup, ListOrder, ListThreshold;
 import 'package:ntodotxt/filter/repository/filter_repository.dart';
 import 'package:ntodotxt/filter/state/filter_cubit.dart';
 import 'package:ntodotxt/filter/state/filter_list_bloc.dart';
@@ -324,6 +324,90 @@ void main() {
         filter: const Filter(
           order: ListOrder.ascending,
           filter: ListFilter.incompletedOnly,
+          group: ListGroup.none,
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      Iterable<TodoListTile> todoTiles =
+          tester.widgetList<TodoListTile>(find.byType(TodoListTile));
+      expect(todoTiles.length, expectedTiles.length);
+
+      for (int i = 0; i < expectedTiles.length; i++) {
+        Finder element = find.descendant(
+          of: find.byWidget(todoTiles.elementAt(i)),
+          matching: find.text(expectedTiles[i], findRichText: true),
+        );
+        await tester.ensureVisible(element);
+        expect(element, findsOneWidget);
+      }
+    });
+    testWidgets('actionable only', (tester) async {
+      final DateTime now = DateTime.now();
+      final DateTime nextDay = now.add(const Duration(days: 1));
+      final String today =
+          '${now.year.toString()}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+      final String tomorrow =
+          '${nextDay.year.toString()}-${nextDay.month.toString().padLeft(2, '0')}-${nextDay.day.toString().padLeft(2, '0')}';
+      file = fs.file('todoFilterActionable.txt');
+      await file.create();
+      await file.writeAsString(
+        [
+          'TodoA',
+          'TodoB t:$today',
+          'TodoC t:$tomorrow',
+        ].join('\n'),
+        flush: true,
+      );
+      final List<String> expectedTiles = [
+        'TodoA',
+        'TodoB',
+      ];
+      await tester.pumpWidget(TodoListPageMaterialApp(
+        localFile: file,
+        filter: const Filter(
+          order: ListOrder.ascending,
+          threshold: ListThreshold.actionableOnly,
+          group: ListGroup.none,
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      Iterable<TodoListTile> todoTiles =
+          tester.widgetList<TodoListTile>(find.byType(TodoListTile));
+      expect(todoTiles.length, expectedTiles.length);
+
+      for (int i = 0; i < expectedTiles.length; i++) {
+        Finder element = find.descendant(
+          of: find.byWidget(todoTiles.elementAt(i)),
+          matching: find.text(expectedTiles[i], findRichText: true),
+        );
+        await tester.ensureVisible(element);
+        expect(element, findsOneWidget);
+      }
+    });
+    testWidgets('waiting only', (tester) async {
+      final DateTime tomorrowDate = DateTime.now().add(const Duration(days: 1));
+      final String tomorrow =
+          '${tomorrowDate.year.toString()}-${tomorrowDate.month.toString().padLeft(2, '0')}-${tomorrowDate.day.toString().padLeft(2, '0')}';
+      file = fs.file('todoFilterWaiting.txt');
+      await file.create();
+      await file.writeAsString(
+        [
+          'TodoA',
+          'TodoB t:1970-01-01',
+          'TodoC t:$tomorrow',
+        ].join('\n'),
+        flush: true,
+      );
+      final List<String> expectedTiles = [
+        'TodoC',
+      ];
+      await tester.pumpWidget(TodoListPageMaterialApp(
+        localFile: file,
+        filter: const Filter(
+          order: ListOrder.ascending,
+          threshold: ListThreshold.waitingOnly,
           group: ListGroup.none,
         ),
       ));

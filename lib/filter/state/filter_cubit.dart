@@ -1,6 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ntodotxt/filter/model/filter_model.dart'
-    show Filter, Filters, Groups, ListFilter, ListGroup, ListOrder, Order;
+    show
+        Filter,
+        Filters,
+        Groups,
+        ListFilter,
+        ListGroup,
+        ListOrder,
+        ListThreshold,
+        Order;
 import 'package:ntodotxt/filter/repository/filter_repository.dart'
     show FilterRepository;
 import 'package:ntodotxt/filter/state/filter_state.dart';
@@ -120,6 +128,16 @@ class FilterCubit extends Cubit<FilterState> {
     try {
       emit(state.update(
         filter: state.filter.copyWith(group: group),
+      ));
+    } on Exception catch (e) {
+      emit(state.error(message: e.toString()));
+    }
+  }
+
+  void updateThreshold(ListThreshold threshold) {
+    try {
+      emit(state.update(
+        filter: state.filter.copyWith(threshold: threshold),
       ));
     } on Exception catch (e) {
       emit(state.error(message: e.toString()));
