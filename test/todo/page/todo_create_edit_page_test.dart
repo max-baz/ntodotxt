@@ -639,6 +639,22 @@ void main() {
           findsOneWidget,
         );
       });
+      testWidgets('TodoThresholdDateItem', (tester) async {
+        await tester.pumpWidget(const MaterialAppWrapper());
+        await tester.pumpAndSettle();
+        await tester.dragUntilVisible(
+          find.byType(TodoThresholdDateItem),
+          find.byType(CustomScrollView),
+          const Offset(0, -100),
+        );
+        expect(
+          find.descendant(
+            of: find.byType(TodoThresholdDateItem),
+            matching: find.text('-'),
+          ),
+          findsOneWidget,
+        );
+      });
     });
 
     group('non default values', () {
@@ -862,6 +878,41 @@ void main() {
           findsOneWidget,
         );
       });
+      testWidgets('TodoThresholdDateItem', (tester) async {
+        await tester.pumpWidget(
+          MaterialAppWrapper(
+            initTodo: Todo(description: 'Code something t:2024-02-27'),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.dragUntilVisible(
+          find.byType(TodoThresholdDateItem),
+          find.byType(CustomScrollView),
+          const Offset(0, -100),
+        );
+        expect(
+          find.descendant(
+            of: find.byType(TodoThresholdDateItem),
+            matching: find.text('2024-02-27'),
+          ),
+          findsOneWidget,
+        );
+        await tester.dragUntilVisible(
+          find.byType(TodoKeyValueTagsItem),
+          find.byType(CustomScrollView),
+          const Offset(0, -100),
+        );
+        expect(
+          find.descendant(
+            of: find.byType(TodoKeyValueTagsItem),
+            matching: find.byWidgetPredicate(
+              (Widget widget) =>
+                  widget is BasicChip && widget.label == 't:2024-02-27',
+            ),
+          ),
+          findsOneWidget,
+        );
+      });
     });
 
     group('update values', () {
@@ -1008,6 +1059,52 @@ void main() {
             matching: find.byWidgetPredicate(
               (Widget widget) =>
                   widget is BasicChip && widget.label == 'due:2024-02-27',
+            ),
+          ),
+          findsOneWidget,
+        );
+      });
+      testWidgets('TodoDescriptionTextField (threshold date)', (tester) async {
+        await tester.pumpWidget(const MaterialAppWrapper());
+        await tester.pumpAndSettle();
+        await tester.dragUntilVisible(
+          find.byType(TodoDescriptionTextField),
+          find.byType(CustomScrollView),
+          const Offset(0, -100),
+        );
+
+        await tester.enterText(
+          find.descendant(
+            of: find.byType(TodoDescriptionTextField),
+            matching: find.byType(TextFormField),
+          ),
+          'Code something t:2024-02-27',
+        );
+        await tester.pumpAndSettle();
+
+        await tester.dragUntilVisible(
+          find.byType(TodoThresholdDateItem),
+          find.byType(CustomScrollView),
+          const Offset(0, -100),
+        );
+        expect(
+          find.descendant(
+            of: find.byType(TodoThresholdDateItem),
+            matching: find.text('2024-02-27'),
+          ),
+          findsOneWidget,
+        );
+        await tester.dragUntilVisible(
+          find.byType(TodoKeyValueTagsItem),
+          find.byType(CustomScrollView),
+          const Offset(0, -100),
+        );
+        expect(
+          find.descendant(
+            of: find.byType(TodoKeyValueTagsItem),
+            matching: find.byWidgetPredicate(
+              (Widget widget) =>
+                  widget is BasicChip && widget.label == 't:2024-02-27',
             ),
           ),
           findsOneWidget,
@@ -1607,6 +1704,116 @@ void main() {
         expect(
           find.descendant(
             of: dueDateItem,
+            matching: find.text('-'),
+          ),
+          findsOneWidget,
+        );
+      });
+      testWidgets('TodoThresholdDateItem (set)', (tester) async {
+        await tester.pumpWidget(
+          MaterialAppWrapper(
+            initTodo: Todo(description: 'Code something'),
+          ),
+        );
+        await tester.pumpAndSettle();
+        final Finder thresholdDateItem = find.byType(TodoThresholdDateItem);
+        await tester.dragUntilVisible(
+          thresholdDateItem,
+          find.byType(CustomScrollView),
+          const Offset(0, -100),
+        );
+        await tester.ensureVisible(thresholdDateItem);
+        await tester.pumpAndSettle();
+
+        await tester.tap(thresholdDateItem);
+        await tester.pumpAndSettle();
+
+        await tester.tap(
+          find.descendant(
+            of: find.byType(DatePickerDialog),
+            matching: find.text('OK'),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final DateTime now = DateTime.now();
+        final String today =
+            '${now.year.toString()}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+        expect(
+          find.descendant(
+            of: thresholdDateItem,
+            matching: find.text(today),
+          ),
+          findsOneWidget,
+        );
+      });
+      testWidgets('TodoThresholdDateItem (already set)', (tester) async {
+        await tester.pumpWidget(
+          MaterialAppWrapper(
+            initTodo: Todo(description: 'Code something t:2024-02-27'),
+          ),
+        );
+        await tester.pumpAndSettle();
+        final Finder thresholdDateItem = find.byType(TodoThresholdDateItem);
+        await tester.dragUntilVisible(
+          thresholdDateItem,
+          find.byType(CustomScrollView),
+          const Offset(0, -100),
+        );
+        await tester.ensureVisible(thresholdDateItem);
+        await tester.pumpAndSettle();
+
+        await tester.tap(thresholdDateItem);
+        await tester.pumpAndSettle();
+
+        await tester.tap(
+          find.descendant(
+            of: find.byType(DatePickerDialog),
+            matching: find.text('OK'),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final DateTime initial = DateTime.parse('2024-02-27');
+        final String today =
+            '${initial.year.toString()}-${initial.month.toString().padLeft(2, '0')}-${initial.day.toString().padLeft(2, '0')}';
+        expect(
+          find.descendant(
+            of: thresholdDateItem,
+            matching: find.text(today),
+          ),
+          findsOneWidget,
+        );
+      });
+      testWidgets('TodoThresholdDateItem (unset)', (tester) async {
+        await tester.pumpWidget(
+          MaterialAppWrapper(
+            initTodo: Todo(description: 'Code something t:2024-02-27'),
+          ),
+        );
+        await tester.pumpAndSettle();
+        final Finder thresholdDateItem = find.byType(TodoThresholdDateItem);
+        await tester.dragUntilVisible(
+          thresholdDateItem,
+          find.byType(CustomScrollView),
+          const Offset(0, -100),
+        );
+        await tester.ensureVisible(thresholdDateItem);
+        await tester.pumpAndSettle();
+
+        final Finder clearThresholdDateButton = find.descendant(
+          of: thresholdDateItem,
+          matching: find.byIcon(Icons.clear),
+        );
+        await tester.ensureVisible(clearThresholdDateButton);
+        await tester.pumpAndSettle();
+
+        await tester.tap(clearThresholdDateButton);
+        await tester.pumpAndSettle();
+
+        expect(
+          find.descendant(
+            of: thresholdDateItem,
             matching: find.text('-'),
           ),
           findsOneWidget,

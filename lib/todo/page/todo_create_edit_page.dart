@@ -102,6 +102,7 @@ class TodoCreateEditPage extends StatelessWidget {
                       TodoCreationDateItem(newTodo: newTodo),
                       if (!newTodo) const TodoCompletionDateItem(),
                       const TodoDueDateItem(),
+                      const TodoThresholdDateItem(),
                       const Divider(),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -712,5 +713,59 @@ class TodoDueDateItem extends StatelessWidget {
 
   void unsetDueDate(BuildContext context, String dueDate) {
     context.read<TodoCubit>().removeKeyValue('due:$dueDate');
+  }
+}
+
+class TodoThresholdDateItem extends StatelessWidget {
+  const TodoThresholdDateItem({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<TodoCubit, TodoState>(
+      buildWhen: (TodoState previousState, TodoState state) {
+        return previousState.todo.keyValues != state.todo.keyValues;
+      },
+      builder: (BuildContext context, TodoState state) {
+        final String? thresholdDate = Todo.date2Str(state.todo.thresholdDate);
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: ListTile(
+            key: key,
+            leading: const Icon(Icons.schedule),
+            title: const Text('Threshold date'),
+            subtitle: Text(thresholdDate ?? '-'),
+            trailing: state.todo.thresholdDate == null
+                ? null
+                : IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () => unsetThresholdDate(
+                      context,
+                      thresholdDate!,
+                    ),
+                  ),
+            onTap: () async => await setThresholdDate(context, state),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> setThresholdDate(BuildContext context, TodoState state) async {
+    final DateTime? date = await TodoDatePicker.pickDate(
+      context: context,
+      initialDate: state.todo.thresholdDate,
+    );
+    if (date != null) {
+      final String? formattedDate = Todo.date2Str(date);
+      if (formattedDate != null) {
+        if (context.mounted) {
+          context.read<TodoCubit>().addKeyValue('t:$formattedDate');
+        }
+      }
+    }
+  }
+
+  void unsetThresholdDate(BuildContext context, String thresholdDate) {
+    context.read<TodoCubit>().removeKeyValue('t:$thresholdDate');
   }
 }
