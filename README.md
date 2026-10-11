@@ -38,7 +38,7 @@ This application is under active development and will continue to be modified an
 - [ ] Import/Export existing todos from/to file
 - [ ] Import/Export filters and other settings
 - [ ] Language localization (e.g. english, german)
-- [ ] [Recurring](https://c306.net/t/topydo-docs/#Recurrence) tasks
+- [x] Recurring tasks compatible with sleek's `rec:` syntax
 - [ ] Archiving of completed todos (done.txt)
 - [ ] ...
 
@@ -48,6 +48,31 @@ This application is under active development and will continue to be modified an
 - [ ] Build and publish as `flatpak` to [flathub](https://flathub.org/) (Linux)
 - [ ] Build and publish as `snap` to [snapcraft](https://snapcraft.io/) (Linux)
 - [ ] Build and publish to Microsoft Store (Windows)
+
+## Recurring tasks
+
+Type a recurrence anywhere in the task text, for example `Water plants rec:1w`, or use **Recurrence** when creating/editing a task. The field stays synchronized with the text. Clear it to stop repeating.
+
+Syntax: `rec:[+][number][unit]` (without the brackets).
+
+| Unit | Interval |
+| --- | --- |
+| `d` | Calendar days |
+| `b` | Business days (Monday–Friday, no holiday calendar) |
+| `w` | Weeks |
+| `m` | Calendar months |
+| `y` | Calendar years |
+
+- `rec:1w`: the next task is due one week after completion, regardless of the old due date.
+- `rec:+1w`: advance the previous due date by one week. Late completion does not skip missed occurrences; the next due date may still be overdue.
+- Bare units (`rec:w`, `rec:+m`) mean one interval. Zero also means one, matching sleek.
+- Months and years clamp to the last valid day (January 31 + one month → February 28/29).
+- Without a due date, the completion date is the fallback. With only a threshold (`t:`), only that threshold advances; no due date is added.
+- With both dates, relative recurrence preserves a positive due/threshold gap. Strict recurrence advances each date independently. Zero/negative gaps in relative mode schedule both dates from completion.
+
+Saving a transition from unfinished to finished retains the completed task and appends one unfinished copy with a new identity, keeping priority, projects, contexts, recurrence, and other tags. If the original has a creation date, the copy gets the completion date as its creation date; otherwise it stays unset. Editing an already completed task or loading a completed task from disk does not generate another copy. Undoing completion leaves the generated copy in place; completing the original again generates another occurrence.
+
+Malformed or partially typed recurrence tags remain in the text but do not repeat. This implementation follows [sleek's recurrence implementation](https://github.com/ransome1/sleek/blob/main/src/main/DataRequest/CreateRecurringTodo.ts) and [its tests](https://github.com/ransome1/sleek/blob/main/src/main/DataRequest/CreateRecurringTodo.test.ts).
 
 ## Build
 

@@ -47,6 +47,8 @@ abstract class TodoListApi {
 
   bool existsTodo(Todo todo);
 
+  Todo? todoById(String id);
+
   /// Saves a [todo].
   /// If a [todo] with [id] already exists, it will be replaced.
   /// If the [todo] with [id] already exists it will be updated/merged.
@@ -156,6 +158,10 @@ class LocalTodoListApi extends TodoListApi {
   @override
   bool existsTodo(Todo todo) =>
       _todoList.indexWhere((t) => t.id == todo.id) == -1 ? false : true;
+
+  @override
+  Todo? todoById(String id) =>
+      _todoList.where((todo) => todo.id == id).firstOrNull;
 
   List<Todo> _save(List<Todo> todoList, Todo todo) {
     int index = todoList.indexWhere((t) => t.id == todo.id);

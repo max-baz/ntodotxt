@@ -20,6 +20,8 @@ class TodoListRepository {
 
   bool existsTodo(Todo todo) => api.existsTodo(todo);
 
+  Todo? todoById(String id) => api.todoById(id);
+
   /// Saves a [todo].
   /// If a [todo] with [id] already exists, it will be replaced.
   /// If the [todo] with [id] already exists it will be updated/merged.

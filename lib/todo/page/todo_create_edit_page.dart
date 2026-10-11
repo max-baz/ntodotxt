@@ -13,6 +13,7 @@ import 'package:ntodotxt/common/widget/priorities_dialog.dart';
 import 'package:ntodotxt/common/widget/projects_dialog.dart';
 import 'package:ntodotxt/setting/state/todo_settings_cubit.dart';
 import 'package:ntodotxt/setting/state/todo_settings_state.dart';
+import 'package:ntodotxt/todo/model/recurrence.dart';
 import 'package:ntodotxt/todo/model/todo_model.dart';
 import 'package:ntodotxt/todo/state/todo_cubit.dart';
 import 'package:ntodotxt/todo/state/todo_list_bloc.dart';
@@ -103,6 +104,7 @@ class TodoCreateEditPage extends StatelessWidget {
                       if (!newTodo) const TodoCompletionDateItem(),
                       const TodoDueDateItem(),
                       const TodoThresholdDateItem(),
+                      const TodoRecurrenceItem(),
                       const Divider(),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -369,6 +371,130 @@ class _TodoDescriptionTextFieldState extends State<TodoDescriptionTextField> {
               context.read<TodoCubit>().updateDescription(_controller.text),
         );
       },
+    );
+  }
+}
+
+class TodoRecurrenceItem extends StatelessWidget {
+  const TodoRecurrenceItem({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<TodoCubit, TodoState>(
+      builder: (context, state) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: ListTile(
+          leading: const Icon(Icons.repeat),
+          title: const Text('Recurrence'),
+          subtitle: Text(state.todo.recurrenceValue ?? '-'),
+          onTap: () => editRecurrence(context, state.todo.recurrenceValue),
+          trailing: state.todo.recurrenceValue == null
+              ? null
+              : IconButton(
+                  tooltip: 'Remove recurrence',
+                  icon: const Icon(Icons.clear),
+                  onPressed: () => context.read<TodoCubit>().removeKeyValue(
+                    'rec:${state.todo.recurrenceValue}',
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> editRecurrence(BuildContext context, String? value) async {
+    final cubit = context.read<TodoCubit>();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => _RecurrenceDialog(value: value),
+    );
+    if (result != null && !cubit.isClosed) {
+      if (result.isEmpty) {
+        if (value != null) cubit.removeKeyValue('rec:$value');
+      } else {
+        cubit.addKeyValue('rec:$result');
+      }
+    }
+  }
+}
+
+class _RecurrenceDialog extends StatefulWidget {
+  final String? value;
+
+  const _RecurrenceDialog({this.value});
+
+  @override
+  State<_RecurrenceDialog> createState() => _RecurrenceDialogState();
+}
+
+class _RecurrenceDialogState extends State<_RecurrenceDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.value ?? '');
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Recurrence'),
+      content: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: _controller,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  labelText: 'Interval',
+                  hintText: '1w or +1w',
+                  prefixText: 'rec:',
+                ),
+                validator: (value) {
+                  final text = value?.trim() ?? '';
+                  if (text.isEmpty || Recurrence.parse(text) != null) {
+                    return null;
+                  }
+                  return 'Use an optional +, number, and d/b/w/m/y';
+                },
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'd: days, b: weekdays, w: weeks, m: months, y: years.\n'
+                '1w: one week after completion.\n'
+                '+1w: one week after the previous scheduled date.\n'
+                'Leave empty to stop repeating.',
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () {
+            if (_formKey.currentState!.validate()) {
+              Navigator.pop(context, _controller.text.trim());
+            }
+          },
+          child: const Text('Save'),
+        ),
+      ],
     );
   }
 }

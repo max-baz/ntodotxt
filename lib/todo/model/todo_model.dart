@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:equatable/equatable.dart';
 import 'package:ntodotxt/common/exception/exceptions.dart';
+import 'package:ntodotxt/todo/model/recurrence.dart';
 
 enum Priority {
   none,
@@ -292,6 +293,56 @@ class Todo extends Equatable {
   String get fmtThresholdDate {
     final String? thresholdDateStr = date2Str(thresholdDate);
     return thresholdDateStr != null ? 't:$thresholdDateStr' : '';
+  }
+
+  String? get recurrenceValue {
+    for (final kv in keyValues) {
+      if (kv.startsWith('rec:')) return kv.substring(4);
+    }
+    return null;
+  }
+
+  Recurrence? get recurrence => Recurrence.parse(recurrenceValue ?? '');
+
+  Todo? nextOccurrence() {
+    final rule = recurrence;
+    if (!completion || rule == null) return null;
+    final completed = completionDate!;
+    final due = dueDate;
+    final threshold = thresholdDate;
+    final nextDue = rule.advance(rule.strict && due != null ? due : completed);
+    final replacements = <String, String>{};
+    if (due != null || threshold == null) {
+      replacements['due'] = 'due:${date2Str(nextDue)}';
+    }
+    if (threshold != null) {
+      final gap = due == null
+          ? 0
+          : DateTime.utc(due.year, due.month, due.day)
+                .difference(
+                  DateTime.utc(threshold.year, threshold.month, threshold.day),
+                )
+                .inDays;
+      final nextThreshold = rule.strict
+          ? rule.advance(threshold)
+          : gap > 0
+          ? DateTime(nextDue.year, nextDue.month, nextDue.day - gap)
+          : rule.advance(completed);
+      replacements['t'] = 't:${date2Str(nextThreshold)}';
+    }
+    final words = description.split(' ');
+    final updated = <String>[];
+    for (final word in words) {
+      final key = word.split(':').first;
+      if (matchKeyValue(word) && replacements.containsKey(key)) continue;
+      updated.add(word);
+    }
+    updated.addAll(replacements.values);
+    return Todo(
+      priority: priority,
+      creationDate: creationDate == null ? null : completed,
+      description: updated.join(' '),
+    );
   }
 
   // Core todo constructor with validation logic.

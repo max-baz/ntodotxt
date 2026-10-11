@@ -60,13 +60,21 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
   ) async {
     emit(state.loading());
     try {
-      _repository.saveTodo(event.todo.copyWith());
+      _saveTodo(event.todo.copyWith());
       await _repository.writeToSource().whenComplete(
         () => emit(state.success()),
       );
     } on Exception catch (e) {
       emit(state.error(message: e.toString()));
     }
+  }
+
+  void _saveTodo(Todo todo) {
+    final previous = _repository.todoById(todo.id);
+    final next = previous != null && !previous.completion && todo.completion
+        ? todo.nextOccurrence()
+        : null;
+    _repository.saveMultipleTodos([todo, if (next != null) next]);
   }
 
   void _onTodoDeleted(
@@ -90,7 +98,7 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
   ) async {
     emit(state.loading());
     try {
-      _repository.saveTodo(
+      _saveTodo(
         event.todo.copyWith(completion: event.completion),
       );
       await _repository.writeToSource().whenComplete(
