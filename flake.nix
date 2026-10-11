@@ -13,8 +13,16 @@
         inherit system;
         config = {
           allowUnfree = true;
+          android_sdk.accept_license = true;
         };
       };
+      androidSdk = (pkgs.androidenv.composeAndroidPackages {
+        platformVersions = [ "34" "35" "36" ];
+        buildToolsVersions = [ "35.0.0" "36.0.0" ];
+        cmakeVersions = [ "3.22.1" ];
+        includeNDK = true;
+        ndkVersions = [ "28.2.13676358" ];
+      }).androidsdk;
     in
     {
       devShells.${system}.default = pkgs.mkShell {
@@ -33,6 +41,9 @@
           shfmt
           sqlite
         ];
+
+        ANDROID_HOME = "${androidSdk}/libexec/android-sdk";
+        ANDROID_SDK_ROOT = "${androidSdk}/libexec/android-sdk";
 
         LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [
           pkgs.sqlite
